@@ -3,6 +3,26 @@
 #include "Header.h"
 
 
+void creer_tab_exclu(taches* t, int s1, int s2)
+{
+    if (t[s1].degre == 0)
+    {
+        t[s1].exclusion = (int *) malloc(sizeof(int));
+        t[s1].exclusion[0] = s2;
+        t[s1].degre++;
+    }
+    else
+    {
+        printf("%d %d\n", s1, s2);
+
+        t[s1].degre++;
+        t[s1].exclusion = (int *) realloc(t[s1].exclusion, t[s1].degre * sizeof(int ));
+        t[s1].exclusion[t[s1].degre - 1] = s2;
+    }
+}
+
+
+
 taches* lire_fichier()
 {
 
@@ -27,7 +47,7 @@ taches* lire_fichier()
 
     fscanf(tps_cyle, "%d", &temps_cycle);
 
-
+    //feof
     /// Lecture du fichier operations
     long ret, pos;
     int sommet, ordre;
@@ -63,9 +83,41 @@ taches* lire_fichier()
 
 
 
+    /// Lecture fichier texte exclusions
+    int s1, s2;
+
+    for (int i = 0; i < ordre; ++i) t[i].degre = 0;
+
+    fseek(exclu, 0, SEEK_END);
+    ret = ftell(exclu);
+    rewind(exclu);
+
+    pos = ftell(exclu);
+    while (pos!=ret)
+    {
+        fscanf(exclu,"%d %d", &s1, &s2);
+        s1--;
+        s2--;
+        creer_tab_exclu(t, s1, s2);
+//        printf("%d %d\n", s1, s2);
+        pos = ftell(exclu);
+
+    }
+
+
+
+
+
+
+    ///Fermeture de fichiers
+    fclose(opera);
+    fclose(tps_cyle);
+    fclose(exclu);
+    fclose(prece);
 
 
     return t;
+
 }
 
 
