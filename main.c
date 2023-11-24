@@ -5,19 +5,23 @@
 
 void creer_tab_exclu(taches* t, int s1, int s2)
 {
-    if (t[s1].degre == 0)
+
+    int i = 0;
+
+    while(t[i].numero != s1) i++;
+
+
+    if (t[i].degre == 0)
     {
-        t[s1].exclusion = (int *) malloc(sizeof(int));
-        t[s1].exclusion[0] = s2;
-        t[s1].degre++;
+        t[i].exclusion = (int *) malloc(sizeof(int));
+        t[i].exclusion[0] = s2;
+        t[i].degre++;
     }
     else
     {
-        printf("%d %d\n", s1, s2);
-
-        t[s1].degre++;
-        t[s1].exclusion = (int *) realloc(t[s1].exclusion, t[s1].degre * sizeof(int ));
-        t[s1].exclusion[t[s1].degre - 1] = s2;
+        t[i].exclusion = (int *) realloc(t[i].exclusion, t[i].degre * sizeof(int ));
+        t[i].exclusion[t[i].degre] = s2;
+        t[i].degre++;
     }
 }
 
@@ -72,6 +76,7 @@ taches* lire_fichier()
     taches *t;
     t = (taches *)malloc(ordre*sizeof(taches));
 
+//    printf("%d", ordre);
     ///On revient au debut du fichier pour cette fois lire les données et les mettre à leur place
     rewind(opera);
     for (int i = 0; i < ordre; ++i)
@@ -96,15 +101,27 @@ taches* lire_fichier()
     while (pos!=ret)
     {
         fscanf(exclu,"%d %d", &s1, &s2);
-        s1--;
-        s2--;
+//        s1--;
+//        s2--;
         creer_tab_exclu(t, s1, s2);
+        creer_tab_exclu(t, s2, s1);
+
 //        printf("%d %d\n", s1, s2);
         pos = ftell(exclu);
 
     }
 
 
+    for (int i = 0; i < ordre; ++i)
+    {
+        printf("Tache %d:  ", t[i].numero);
+        for (int j = 0; j < t[i].degre; ++j)
+        {
+            printf("%d ",t[i].exclusion[j]);
+        }
+        printf("\n");
+
+    }
 
 
 
