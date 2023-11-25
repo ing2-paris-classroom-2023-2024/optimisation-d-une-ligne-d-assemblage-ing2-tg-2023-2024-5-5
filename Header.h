@@ -11,6 +11,8 @@ typedef struct tache
     float temps;
     int degre;
     int *exclusion;
+    int *precedences;
+    int nb_de_prece;
 
 }taches;
 

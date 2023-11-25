@@ -25,6 +25,27 @@ void creer_tab_exclu(taches* t, int s1, int s2)
     }
 }
 
+void creer_tab_prece(taches* t, int s1, int s2)
+{
+    int i = 0;
+
+    while(t[i].numero != s2) i++;
+
+
+    if(t[i].nb_de_prece==0)
+    {
+        t[i].precedences = (int *) malloc(sizeof(int ));
+        t[i].precedences[0]= s1;
+        t[i].nb_de_prece++;
+    }
+    else
+    {
+        t[i].precedences = (int *) realloc(t[i].precedences, t[i].nb_de_prece * sizeof(int ));
+        t[i].precedences[t[i].nb_de_prece] = s1;
+        t[i].nb_de_prece++;
+    }
+
+}
 
 
 taches* lire_fichier()
@@ -101,16 +122,16 @@ taches* lire_fichier()
     while (pos!=ret)
     {
         fscanf(exclu,"%d %d", &s1, &s2);
-//        s1--;
-//        s2--;
+
         creer_tab_exclu(t, s1, s2);
         creer_tab_exclu(t, s2, s1);
 
-//        printf("%d %d\n", s1, s2);
         pos = ftell(exclu);
 
     }
 
+
+    /*
 
     for (int i = 0; i < ordre; ++i)
     {
@@ -122,6 +143,50 @@ taches* lire_fichier()
         printf("\n");
 
     }
+
+    */
+
+
+    ///Lecture du fichier precedences
+    s1 = s2 = 0;
+
+
+    for (int i = 0; i < ordre; ++i) t[i].nb_de_prece = 0;
+
+
+    fseek(prece, 0, SEEK_END);
+    ret = ftell(prece);
+    rewind(prece);
+
+    pos = ftell(prece);
+    while (pos!=ret)
+    {
+        fscanf(prece,"%d %d", &s1, &s2);
+
+        creer_tab_prece(t, s1, s2);
+
+        pos = ftell(prece);
+    }
+
+
+
+    /*
+    for (int i = 0; i < ordre; ++i)
+    {
+        printf("Tache %d:  ", t[i].numero);
+        for (int j = 0; j < t[i].nb_de_prece; ++j)
+        {
+            printf("%d ",t[i].precedences[j]);
+        }
+        printf("\n");
+
+    }
+
+     */
+
+
+
+
 
 
 
@@ -142,6 +207,8 @@ int main() {
     taches *t;
 
     t = lire_fichier();
+
+
 
     return 0;
 }
