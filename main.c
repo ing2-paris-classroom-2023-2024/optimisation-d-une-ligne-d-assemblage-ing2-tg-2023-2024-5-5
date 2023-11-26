@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Header.h"
+#include <stdbool.h>
 
 
 void creer_tab_exclu(taches* t, int s1, int s2)
@@ -151,7 +152,12 @@ taches* lire_fichier()
     s1 = s2 = 0;
 
 
-    for (int i = 0; i < ordre; ++i) t[i].nb_de_prece = 0;
+    for (int i = 0; i < ordre; ++i)
+    {
+        t[i].nb_de_prece = 0;
+        t[i].precedences = -1;
+
+    }
 
 
     fseek(prece, 0, SEEK_END);
@@ -170,10 +176,11 @@ taches* lire_fichier()
 
 
 
-    /*
+
     for (int i = 0; i < ordre; ++i)
     {
         printf("Tache %d:  ", t[i].numero);
+        if (t[i].precedences==-1) printf("-1 ");
         for (int j = 0; j < t[i].nb_de_prece; ++j)
         {
             printf("%d ",t[i].precedences[j]);
@@ -181,12 +188,6 @@ taches* lire_fichier()
         printf("\n");
 
     }
-
-     */
-
-
-
-
 
 
 
@@ -203,11 +204,38 @@ taches* lire_fichier()
 }
 
 
-int main() {
-    taches *t;
+t_station precedances(taches *t, int ordre)
+{
+    t_station* station;
 
-    t = lire_fichier();
+    station = (t_station *)malloc(sizeof(t_station));
 
+
+    int compteur = 0;
+
+    for (int i = 0; i < ordre; ++i)
+    {
+//        if (t[i].precedences==-1) printf();
+
+    }
+
+
+
+//    t[i].exclusion = (int *) realloc(t[i].exclusion, t[i].degre * sizeof(int ));
+
+
+}
+
+
+
+int main()
+{
+    t_graphes graphe;
+    t_station station;
+
+    graphe.tache = lire_fichier();
+    /// A MODIFIER (31!!!!!!!!)
+//    station = precedances(graphe.tache,31);
 
 
     return 0;
