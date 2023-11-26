@@ -173,9 +173,6 @@ void W_P(Graphe *graphe,int ordre){
 
 
 }
-void bsf_change(){
-
-}
 
 int main() {
     Graphe * g;
