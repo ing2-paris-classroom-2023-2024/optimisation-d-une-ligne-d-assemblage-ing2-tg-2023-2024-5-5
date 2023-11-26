@@ -58,40 +58,39 @@ int welchPowell(Exclusion exclusions[], int nombreExclusions, int nombreOperatio
     return nombreStations;
 }
 
-int algorithmeNaif(Exclusion exclusions[], int nombreExclusions, int nombreOperations) {
-    // Nombre initial de stations est 0
-    int nombreStations = 0;
+void fusionnerStations(int stations[], int station1, int station2) {
+    for (int i = 0; i < MAX_OPERATIONS; ++i) {
+        if (stations[i] == station2) {
+            stations[i] = station1;
+        }
+    }
+}
 
-    // Tableau pour suivre la station attribuée à chaque opération
+int algorithmeNaif(Exclusion exclusions[], int nombreExclusions, int nombreOperations) {
+    int nombreStations = 0;
     int stations[MAX_OPERATIONS] = {0};
 
-    // Pour chaque paire d'opérations exclues
     for (int i = 0; i < nombreExclusions; ++i) {
         int operation1 = exclusions[i].operation1;
         int operation2 = exclusions[i].operation2;
 
-        // Si les opérations ne sont pas encore attribuées à une station
-        if (stations[operation1 - 1] == 0 && stations[operation2 - 1] == 0) {
-            // Attribuer une nouvelle station aux deux opérations
+        int station1 = trouverStation(stations, operation1);
+        int station2 = trouverStation(stations, operation2);
+
+        if (station1 == 0 && station2 == 0) {
+            // Aucune des deux opérations n'est attribuée à une station, attribuer une nouvelle station
             nombreStations++;
             stations[operation1 - 1] = nombreStations;
             stations[operation2 - 1] = nombreStations;
-        } else if (stations[operation1 - 1] == 0) {
-            // Si seulement l'opération 1 n'est pas attribuée, attribuer la même station que l'opération 2
-            stations[operation1 - 1] = stations[operation2 - 1];
-        } else if (stations[operation2 - 1] == 0) {
-            // Si seulement l'opération 2 n'est pas attribuée, attribuer la même station que l'opération 1
-            stations[operation2 - 1] = stations[operation1 - 1];
-        } else if (stations[operation1 - 1] != stations[operation2 - 1]) {
-            // Si les deux opérations sont attribuées à des stations différentes, fusionner les stations
-            int station1 = stations[operation1 - 1];
-            int station2 = stations[operation2 - 1];
-
-            for (int j = 0; j < nombreOperations; ++j) {
-                if (stations[j] == station2) {
-                    stations[j] = station1;
-                }
-            }
+        } else if (station1 == 0) {
+            // Seule l'opération 1 n'est pas attribuée, attribuer la même station que l'opération 2
+            stations[operation1 - 1] = station2;
+        } else if (station2 == 0) {
+            // Seule l'opération 2 n'est pas attribuée, attribuer la même station que l'opération 1
+            stations[operation2 - 1] = station1;
+        } else if (station1 != station2) {
+            // Les deux opérations sont attribuées à des stations différentes, fusionner les stations
+            fusionnerStations(stations, station1, station2);
         }
     }
 
