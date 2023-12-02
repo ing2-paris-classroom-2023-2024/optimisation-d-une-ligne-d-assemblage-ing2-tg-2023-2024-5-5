@@ -276,13 +276,29 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
         // On regarde qui sont les voisins du sommet courant et on les parcourt §
         pArc arc = graphes->tache[sommet_courant].arc;
 
-        while (arc != NULL)
-        { // tant que le sommet à encore des voisins non marqués
+        for (int i = 0; i <graphes->ordre; ++i)
+        {
+            pArc arc1 = graphes->tache[i].arc;
+//            if (arc1!=NULL) printf("il y a un arc entre %d  et : %d  indice %d \n",graphes->tache[i].numero,arc1->sommet,i);
+//            else printf("FIN de %d   indice %d\n",graphes->tache[i].numero, i );
+        }
+        if(arc == NULL) printf(" on est sur un arc null");
+
+        while (arc!= NULL)
+        {
+
+            cmpt2++;
+            printf(" nombre de tour de boucle %d\n",cmpt2);
+            //printf("on est dans bfs \n\n");
+
+            // tant que le sommet à encore des voisins non marqué
             int voisin = arc->sommet;
-            printf(" \nvoisin n            %d\n",voisin);
+
+//            printf(" \nvoisin n            %d\n",voisin);
             int i = 0;
             while(graphes->tache[i].numero != voisin) i++;
-            printf(" correspond au sommet : %d son sommet suivant est  %d\n",graphes->tache[sommet_courant].numero,graphes->tache[i].numero);// on récupère le numéro du sommet voisin du sommet courant
+            printf("sommet courrant %d a indice %d\n",voisin,i);
+//            printf(" correspond au sommet : %d son sommet suivant est  %d\n",graphes->tache[sommet_courant].numero,graphes->tache[i].numero);// on récupère le numéro du sommet voisin du sommet courant
 
 
             //fin_predecesseur(graphes->tache,i, sommet_courant);
@@ -293,7 +309,7 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
                 if(somme(file,graphes->tache,graphes,i)==1)
                 {
                     enfiler(file, i);
-                    printf("enfiler\n");
+//                    printf("enfiler\n");
                     afficher_f(file);
                     file->ordre++;
                     graphes->tache[i].marquage=true;
@@ -301,7 +317,7 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
                 }
                 else
                 {
-                    printf("le temps est superieur\n");
+//                    printf("le temps est superieur\n");
 
                     s->tab_station = (int*)malloc((file->ordre)*sizeof(int));
                     s->ordre = file->ordre;
@@ -311,7 +327,14 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
                     for (int j = 0; j < file->ordre; ++j) s->tab_station[j]=defiler(file);
 
                     afficher_s(s, indice, graphes);
-
+/*
+                    printf("MARQUAGEEEE new de 1  %d\n", graphes->tache[0].marquage);
+                    printf("MARQUAGEEEE de 2  %d\n", graphes->tache[1].marquage);
+                    printf("MARQUAGEEEE de 3  %d\n", graphes->tache[2].marquage);
+                    printf("MARQUAGEEEE de 4  %d\n", graphes->tache[3].marquage);
+                    printf("MARQUAGEEEE de 5  %d\n", graphes->tache[4].marquage);
+                    printf("MARQUAGEEEE de 6  %d\n", graphes->tache[5].marquage);
+*/
 
                     file->ordre=0;
                     s->suivant = creer_station();
@@ -322,10 +345,9 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
                     enfiler(file, i);
                     graphes->tache[i].marquage=true;
                     file->ordre++;
-                    for (int j = 0; j < file->ordre; ++j) s->tab_station[j]=defiler(file);
-                    s->ordre = file->ordre;
-                    printf("///////\n");
-                    afficher_s(s, indice, graphes);
+
+
+
                     /*
                     //cmpt2++;
                     //s = (t_station*) realloc(s, cmpt2*sizeof (t_station));
@@ -353,7 +375,7 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
             break;
 
 
-            
+
 
         }
 
@@ -578,6 +600,8 @@ t_graphes *lire_fichier()
         pos = ftell(prece);
     }
 
+    for (int i = 0; i < g->ordre; ++i) if(g->tache[i].arc==NULL) g->tache=CreerArete(g->tache,g->tache[i].numero,-2);;
+
 
 
 /*
@@ -635,7 +659,6 @@ t_station precedances(t_graphes *g)
     initFile(&file);
 
 
-
     while(fini(t, ordre)==false)
     {
 
@@ -687,20 +710,21 @@ t_station precedances(t_graphes *g)
 //        printf("Ce projet pue la merde\n");
        // printf("\niciiiii %d\n", i);
 
-
+/*
         printf("MARQUAGEEEE de 1  %d\n", t[0].marquage);
         printf("MARQUAGEEEE de 2  %d\n", t[1].marquage);
         printf("MARQUAGEEEE de 3  %d\n", t[2].marquage);
         printf("MARQUAGEEEE de 4  %d\n", t[3].marquage);
         printf("MARQUAGEEEE de 5  %d\n", t[4].marquage);
         printf("MARQUAGEEEE de 6  %d\n", t[5].marquage);
+*/
         //afficher_f(&file);
 
 
 
-
+/*
         printf("paketa sevran : %f\n", actual->temps_tot);
-        /*
+
         for (int j = 0; j < actual->ordre; ++j) {
             printf("%d ", actual->tab_station[j]);
 
