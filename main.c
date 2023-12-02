@@ -75,7 +75,7 @@ void graphe_afficher(struct graphe* graphe){
 
     printf("ordre = %d\n",graphe->ordre);
 
-    printf("temps cycle %d\n", graphe->temps_de_cycle),
+    printf("temps cycle %f\n", graphe->temps_de_cycle),
 
     printf("listes d'adjacence :\n");
 
@@ -138,7 +138,7 @@ void enfiler(t_fileDyn * ptAlignement, int nouvelElement){
 int defiler(t_fileDyn * ptAlignement){
     t_maillon* ptcourant = NULL;
     t_maillon* ptprecedent = NULL;
-    char res;
+    int res;
 
     if (estVide(ptAlignement) == 1){
         printf("il n'y a aucun element à supprimer. La file est vide\n");
@@ -173,13 +173,45 @@ int defiler(t_fileDyn * ptAlignement){
         return res;
     }
 }
+bool fin_predecesseur(taches *t, int voisin, int current)
+{
+    printf("l indice est %d\n",voisin);
+    for (int i = 0; i < t[voisin].nb_de_prece; ++i) {
+       // printf("nombre de precedence du sommet %d est %d\n", t[voisin].numero,t[voisin].nb_de_prece);
+        //printf("\n sommet precedent de %d est %d\n",t[voisin].numero,t[voisin].precedences[i]);
+        int y=0;
+        while(t[y].numero != t[voisin].precedences[i]) y++;
+        //printf("l indice du precedent est : %d\n",y);
+       // printf("le boolen de la precedence %d est : %d\n",t[voisin].precedences[i],t[y].marquage);
 
-void bfs (t_graphes * graphes, int s_init, int s_fin, int tab[]){
+        if (t[y].marquage == false)
+            return false;
+    }
+    return true;
+}
+
+bool somme(t_fileDyn *file,taches* t,t_graphes *g){
+    printf("aaaaaaaaaaaaabbbb");
+    float i=0;
+    printf("aaaaaa\n");
+    t_maillon *actual = file->Maillon_ADefiler->suivant;
+    while(actual!=NULL){
+        printf("aazeerty");
+        i += t[file->Maillon_AEnfiler->num].temps;
+        actual = actual->suivant;
+    }
+    i += t->temps;
+    if (i <= g->temps_de_cycle)return 1;
+    return 0;
+}
+
+void bfs (t_graphes * graphes, int s_init,int ordre, t_station* s){
     // création d'un tableau dynamique qui va contenir les marquages des sommets
     int* marquage = (int*)malloc(graphes->ordre * sizeof(int));
     // création d'un tableau dynamique qui va contenir les prédécesseurs des sommets
     int* predecesseur = (int*)malloc(graphes->ordre * sizeof(int));
-
+    int cmpt=0;
+    int cmpt2= 0;
 
     // Initialisation d'une file vide
     t_fileDyn file;
@@ -192,26 +224,60 @@ void bfs (t_graphes * graphes, int s_init, int s_fin, int tab[]){
     // on cherche quel est le plus grand sommet dans le cas où les sommets du t_graphes ne commencent pas à 0 :
 
     while (!estVide(&file)) {
-        int sommet_courant = defiler(&file); // on enlève de la file le prochain sommet qui va être exploré par le BFS
-        printf(" %d", sommet_courant); // on affiche le sommet en question
+        int sommet_courant = s_init; // on enlève de la file le prochain sommet qui va être exploré par le BFS
+        printf(" indice sommet courant %d ", sommet_courant); // on affiche le sommet en question
 
         // On regarde qui sont les voisins du sommet courant et on les parcourt §
         pArc arc = graphes->tache[sommet_courant].arc;
 
-        while (arc != NULL) { // tant que le sommet à encore des voisins non marqués
-            int voisin = arc->sommet; // on récupère le numéro du sommet voisin du sommet courant
-            for (int i = 0; i < graphes->tache[voisin].nb_de_prece; ++i) { // parcourir les sommets precedent du sommet voisin et regatrder si c ets true ou non si ils sont tous true ( sous fonction ) on enfile le sommet et on le marque, faire aussi verifier les temsp de cycle
 
-                if (graphes->tache[voisin].marquage == 0) { // on vérifie que le marquage soit égal à 0 (càd qu'il n'est pas déjà été visité)
-                    marquage[voisin] = 1; // et on le marque pour montrer qu'il a été visité
-                    predecesseur[voisin] = sommet_courant; // on garde en mémoire le numéro du prédécesseur du voisin
-                    enfiler(&file, voisin); // dans ce cas, on ajoute le sommet en question à la file
+
+
+
+        while (arc != NULL)
+        { // tant que le sommet à encore des voisins non marqués
+            int voisin = arc->sommet;
+
+            int i = 0;
+            while(graphes->tache[i].numero != voisin) i++;
+            printf(" correspond au sommet : %d son sommet suivant est  %d\n",graphes->tache[sommet_courant].numero,graphes->tache[i].numero);// on récupère le numéro du sommet voisin du sommet courant
+
+
+            //fin_predecesseur(graphes->tache,i, sommet_courant);
+            if(fin_predecesseur(graphes->tache,i, sommet_courant)==true)
+            {
+                printf("sale chien");
+
+                if(somme(&file,&graphes->tache[i],graphes)==1)
+                {
+                    enfiler(&file, i);
+                    cmpt++;
+                    graphes->tache[i].marquage=true;
+
+                }
+                else
+                {
+                    s[cmpt2].tab_station=(int*)malloc(cmpt*sizeof(int));
+                    cmpt2++;
+                    for (int j = 0; j < cmpt; ++j)
+                    {
+                        s[cmpt2].tab_station[j]=defiler(&file);
+                    }
+                    cmpt=0;
+
                 }
 
+                arc = arc->arc_suivant; // on passe au voisin suivant
+
+
             }
+            break;
+
+
 
 //            arc = arc->arc_suivant; // on passe au voisin suivant
         }
+        break;
     }
     // on parcourt toute la file tant qu'elle n'est pas vide
 
@@ -236,11 +302,17 @@ void bfs (t_graphes * graphes, int s_init, int s_fin, int tab[]){
     // Libération de la mémoire allouée
     free(marquage);
     free(predecesseur);
+    */
 }
 
 
-
-
+/*
+if (graphes->tache[voisin].marquage == 0) { // on vérifie que le marquage soit égal à 0 (càd qu'il n'est pas déjà été visité)
+marquage[voisin] = 1; // et on le marque pour montrer qu'il a été visité
+predecesseur[voisin] = sommet_courant; // on garde en mémoire le numéro du prédécesseur du voisin
+enfiler(&file, voisin); // dans ce cas, on ajoute le sommet en question à la file
+}
+*/
 
 void creer_tab_exclu(taches* t, int s1, int s2)
 {
@@ -308,9 +380,9 @@ t_graphes *lire_fichier()
 
 
     /// Lecture du fichier temps de cycle
-    int temps_cycle;
+    float temps_cycle;
 
-    fscanf(tps_cyle, "%d", &temps_cycle);
+    fscanf(tps_cyle, "%f", &temps_cycle);
 
 
 
@@ -420,7 +492,7 @@ t_graphes *lire_fichier()
     while (pos!=ret)
     {
         fscanf(prece,"%d %d", &s1, &s2);
-
+        g->tache=CreerArete(g->tache,s1,s2);
         creer_tab_prece(t, s1, s2);
 
         pos = ftell(prece);
@@ -476,7 +548,7 @@ t_station precedances(t_graphes *g)
 {
     taches *t = g->tache;
     int ordre = g->ordre;
-    int temps_cycle = g->temps_de_cycle;
+    float temps_cycle = g->temps_de_cycle;
 
     t_station* station;
     station = (t_station *)malloc(sizeof(t_station));

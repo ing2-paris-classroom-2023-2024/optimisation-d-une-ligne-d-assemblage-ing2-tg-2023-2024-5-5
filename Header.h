@@ -16,6 +16,15 @@ struct Arc
 /* Alias de pointeur sur un Arc */
 typedef struct Arc* pArc;
 
+typedef struct maillon{
+    int num;
+    struct maillon * suivant;
+} t_maillon;
+
+typedef struct fileDyn{
+    t_maillon * Maillon_ADefiler;
+    t_maillon * Maillon_AEnfiler;
+}t_fileDyn;
 
 
 
@@ -36,6 +45,7 @@ typedef struct tache
 }taches;
 
 
+
 typedef struct station
 {
     int ordre;
@@ -47,8 +57,9 @@ typedef struct station
 typedef struct graphe
 {
     int ordre;
-    int temps_de_cycle;
+    float temps_de_cycle;
     taches *tache;
+    t_station * ancre;
 }t_graphes;
 
 
