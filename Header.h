@@ -39,6 +39,7 @@ typedef struct tache
 typedef struct station
 {
     int ordre;
+    float temps_tot;
     int *tab_station;
     struct station* suivant;
 }t_station;

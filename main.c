@@ -3,17 +3,21 @@
 #include "Header.h"
 #include <stdbool.h>
 
-taches* CreerArete(taches* sommet,int s1,int s2){
-    if(sommet[s1].arc==NULL){
+taches* CreerArete(taches* sommet,int s1,int s2)
+{
+    int i = 0;
+    while(sommet[i].numero != s1) i++;
+
+    if(sommet[i].arc==NULL){
         pArc Newarc=(pArc)malloc(sizeof(struct Arc));
         Newarc->sommet=s2;
         Newarc->arc_suivant=NULL;
-        sommet[s1].arc=Newarc;
+        sommet[i].arc=Newarc;
         return sommet;
     }
 
     else{
-        pArc temp=sommet[s1].arc;
+        pArc temp=sommet[i].arc;
 
         while( !(temp->arc_suivant==NULL)){
             temp=temp->arc_suivant;
@@ -88,9 +92,6 @@ void graphe_afficher(struct graphe* graphe){
 // donné
 // La construction du réseau peut se faire à partir d'un fichier dont le nom est passé en paramètre
 // Le fichier contient : ordre, taille, orientation (0 ou 1)et liste des arcs
-
-
-
 
 void initFile (t_fileDyn * ptAlignement){
     ptAlignement->Maillon_ADefiler = NULL;
@@ -209,7 +210,7 @@ void bfs (t_graphes * graphes, int s_init, int s_fin, int tab[]){
 
             }
 
-            arc = arc->arc_suivant; // on passe au voisin suivant
+//            arc = arc->arc_suivant; // on passe au voisin suivant
         }
     }
     // on parcourt toute la file tant qu'elle n'est pas vide
@@ -217,12 +218,16 @@ void bfs (t_graphes * graphes, int s_init, int s_fin, int tab[]){
     printf("\n");
 
     // on affiche les prédécesseurs de chaque sommet
+
+
+/*
     printf("Predecesseurs :\n");
     for (int i = 0; i < t_graphes->ordre; i++) {
         if(predecesseur[i] != -1){
             printf("Sommet %d -> Predecesseur : %d\n", i, predecesseur[i]);
         }
     }
+
 
 
     // on affiche le parcours finalement réalisé par le BSF
@@ -457,6 +462,15 @@ bool fini(taches *t, int ordre)
     return true;
 }
 
+t_station * creer_station() {
+    t_station *nouvelle_station;
+    nouvelle_station = (t_station *) malloc(sizeof(t_station));
+    nouvelle_station->temps_tot = 0;
+    nouvelle_station->ordre = 0;
+    nouvelle_station->suivant = NULL;
+    nouvelle_station->tab_station = (int *) malloc(sizeof (int ));
+    return nouvelle_station;
+}
 
 t_station precedances(t_graphes *g)
 {
@@ -467,26 +481,72 @@ t_station precedances(t_graphes *g)
     t_station* station;
     station = (t_station *)malloc(sizeof(t_station));
 
-    ///Init de la premiere station (creation new fonction)
+    g->ancre = creer_station();
 
 
     int compteur = 0;
     int i;
     int temps;
 
+    t_station * actual = g->ancre;
+
+
+
     while(fini(t, ordre)==false)
     {
+
         for (i = 0; i < ordre; ++i)
         {
-            if (t[i].precedences == -1 && t[i].marquage==false)
+            if (t[i].precedences == -1 && t[i].marquage == false)
             {
-                if (t[i]) /// comparaison temps somme et temps station
-                printf("Tache depart : %d\n", t[i].numero);
-                station[0].tab_station = (int *) malloc(sizeof(int));
-                station[0].tab_station[0] = i;
+
+                if ((t[i].temps + actual->temps_tot) > temps_cycle)
+                {
+                    actual->suivant = creer_station();
+                    actual = actual->suivant;
+                }
+
+
+//                printf("Tache depart : %d\n", t[i].numero);
+                if (ordre!=0)
+                {
+                    actual->tab_station = (int *) realloc(actual->tab_station, ((actual->ordre)+1)* sizeof(int ));
+                    actual->tab_station[actual->ordre] = i;
+                }
+                else
+                {
+                    actual->tab_station[actual->ordre] = i;
+                }
+
+                actual->ordre++;
+                actual->temps_tot = actual->temps_tot + t[i].temps;
+                t[i].marquage = true;
                 break;
+
+
             }
         }
+
+
+//        printf("marquageeee de %d = %d", i, t[i].marquage);
+//        printf("Ce projet pue la merde\n");
+
+        bfs(g,i,g->ordre,station);
+
+
+
+
+
+        printf("paketa sevran : %f\n", actual->temps_tot);
+        /*
+        for (int j = 0; j < actual->ordre; ++j) {
+            printf("%d ", actual->tab_station[j]);
+
+        }
+
+        printf("\n");
+        */
+
     }
 
 
