@@ -353,6 +353,7 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
             break;
 
 
+            
 
         }
 
