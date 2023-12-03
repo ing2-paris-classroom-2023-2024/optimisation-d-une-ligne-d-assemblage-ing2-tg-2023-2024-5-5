@@ -143,7 +143,7 @@ t_graphes *lire_fichier()
 
 
 
-    //feof
+    ///feof
     /// Lecture du fichier operations
     long ret, pos;
     int sommet, ordre;
@@ -191,6 +191,7 @@ t_graphes *lire_fichier()
 
 
     /// Lecture fichier texte exclusions
+    /// création d'une matrice initialisée à 1 dans laquelle nous allons stocker les sommets et assigner 0 lorsqu'ils sont adjacents
     int s1, s2;
 
     for (int i = 0; i < ordre; ++i) t[i].degre = 0;
@@ -290,7 +291,7 @@ t_graphes *lire_fichier()
 */
 
 
-    ///Fermeture de fichiers
+    /// Fermeture de fichiers
     fclose(opera);
     fclose(tps_cyle);
     fclose(exclu);

@@ -6,7 +6,7 @@
 #ifndef PROJET_ING2_TEST_HEADER_H
 #define PROJET_ING2_TEST_HEADER_H
 
-
+/// structure s'occupant de la gestion des stations
 typedef struct station
 {
     int ordre;
@@ -31,6 +31,8 @@ typedef struct tache
 
 }taches;
 
+
+/// structure s'occupant de la gestion du graphe ainsi que de la liste chainée utilise pour relier les deux contraintes
 typedef struct graphe
 {
     int nb_station;
