@@ -146,8 +146,6 @@ void verif(t_graphes *g){
             printf(" %d\n", arc->sommet);
             arc = arc->arc_suivant;
         }
-
-        printf("\n");
     }
 }
 int defiler(t_fileDyn * ptAlignement){
