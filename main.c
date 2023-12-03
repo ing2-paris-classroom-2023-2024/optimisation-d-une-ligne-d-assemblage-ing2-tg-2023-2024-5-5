@@ -223,10 +223,107 @@ t_station * creer_station() {
 void BFS(t_graphes *g);
 
 // Function to assign a task to a station
-void assignToStation(t_graphes *g, t_station *station, taches *task);
+void assignToStation(t_graphes * g, t_station * station, taches * task) {
+    printf("Assigning task %d to station.\n", task->numero);
+
+    // Check if station is null
+    if (station == NULL) {
+        printf("Error: Station pointer is null.\n");
+        return;
+    }
+
+    // Debug print: Print the initial state of the station
+    printf("Initial station: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+
+    // Traverse the list to find the last station
+    while (station->suivant != NULL) {
+        station = station->suivant;
+    }
+
+    // Debug print: Print the final state of the station after traversal
+    printf("Final station after traversal: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+
+    // Allocate memory for tab_station if not already allocated
+    if (station->tab_station == NULL) {
+        station->tab_station = (int*)malloc(g->ordre * sizeof(int));
+        if (station->tab_station == NULL) {
+            printf("Error: Memory allocation failed.\n");
+            return;
+        }
+        // Debug print: Indicate that memory allocation was successful
+        printf("Memory allocated for tab_station.\n");
+    }
+
+    // Debug print: Print the assigned task information
+    printf("Task assigned: numero=%d, temps=%.2f\n", task->numero, task->temps);
+
+    // Assuming each station has a time limit, check if the task fits within the time constraint
+    if (station->temps_tot + task->temps <= g->temps_de_cycle) {
+        // Debug print: Indicate that the task fits into the time constraint
+        printf("Task fits into the time constraint. Assigning...\n");
+
+        // Assign the task to the station
+        station->tab_station[station->ordre++] = task->numero;
+
+        // Update the total time of the station
+        station->temps_tot += task->temps;
+
+        // Debug print: Print the updated state of the station after task assignment
+        printf("Updated station after assignment: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+    } else {
+        // Debug print: Indicate that the task doesn't fit into the time constraint
+        printf("Task doesn't fit into the time constraint. Creating a new station...\n");
+
+        // If the task doesn't fit within the time constraint, create a new station
+        station->suivant = creer_station();
+//        station->suivant = (t_station *)malloc(sizeof(t_station));
+//        station->suivant->ordre = 0;
+//        station->suivant->temps_tot = 0;
+        station->suivant->tab_station = (int*)malloc(g->ordre * sizeof(int)); // Allocate memory for tab_station
+//        station->suivant->suivant = NULL;
+
+        // Check if memory allocation for tab_station was successful
+        if (station->suivant->tab_station == NULL) {
+            printf("Error: Memory allocation failed for new station->tab_station.\n");
+            free(station->suivant); // Free the allocated memory for the new station
+            return;
+        }
+
+        station = station->suivant;
+
+        // Assign the task to the new station
+        station->tab_station[station->ordre++] = task->numero;
+
+        // Update the total time of the new station
+        station->temps_tot += task->temps;
+
+        // Debug print: Print the state of the new station after creation
+        printf("New station created: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+    }
+}
 
 // Function to free allocated memory
 void freeMemory(t_graphes *g);
+
+void afficher_s(t_graphes *g){
+    int numero=1;
+    t_station *actual = g->ancre;
+//    if (actual!=NULL) printf("ererer");
+    while(actual!=NULL){
+//        printf("ordre de s : %d", s->ordre);
+        for (int i = 0; i < actual->ordre; ++i) {
+            printf("l etat de la station %d  est %d\n",numero,actual->tab_station[i] );
+        }
+
+
+        numero++;
+        //actual->tab_station[g->tache[i].numero]
+        actual = actual->suivant;
+
+    }
+
+}
+
 
 int main() {
     // Read input files and create the graph
@@ -237,7 +334,13 @@ int main() {
 
     // Output the results or further processing as needed
     // (You need to implement this based on your requirements)
-
+    printf("\n\n\n");
+    printf("%d, %f\n", graph->ancre->ordre, graph->ancre->temps_tot );
+    for (int i = 0; i < graph->ancre->ordre; ++i) {
+        printf("%d ", graph->ancre->tab_station[i]);
+    }
+    printf("\n");
+    afficher_s(graph);
     // Cleanup and free memory
     freeMemory(graph);
 
@@ -281,74 +384,74 @@ void BFS(t_graphes *g) {
     free(queue);
 }
 
-void assignToStation(t_graphes *g, t_station *station, taches *task) {
-    printf("Assigning task %d to station.\n", task->numero);
-
-    // Check if station is null
-    if (station == NULL) {
-        printf("Error: Station pointer is null.\n");
-        return;
-    }
-
-    // Debug print: Print the initial state of the station
-    printf("Initial station: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-
-    // Traverse the list to find the last station
-    while (station->suivant != NULL) {
-        station = station->suivant;
-    }
-
-    // Debug print: Print the final state of the station after traversal
-    printf("Final station after traversal: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-
-    // Allocate memory for tab_station if not already allocated
-    if (station->tab_station == NULL) {
-        station->tab_station = (int *)malloc(g->ordre * sizeof(int));
-        if (station->tab_station == NULL) {
-            printf("Error: Memory allocation failed.\n");
-            return;
-        }
-        // Debug print: Indicate that memory allocation was successful
-        printf("Memory allocated for tab_station.\n");
-    }
-
-    // Debug print: Print the assigned task information
-    printf("Task assigned: numero=%d, temps=%.2f\n", task->numero, task->temps);
-
-    // Assuming each station has a time limit, check if the task fits within the time constraint
-    if (station->temps_tot + task->temps <= g->temps_de_cycle) {
-        // Debug print: Indicate that the task fits into the time constraint
-        printf("Task fits into the time constraint. Assigning...\n");
-
-        // Assign the task to the station
-        station->tab_station[station->ordre++] = task->numero;
-
-        // Update the total time of the station
-        station->temps_tot += task->temps;
-
-        // Debug print: Print the updated state of the station after task assignment
-        printf("Updated station after assignment: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-    } else {
-        // Debug print: Indicate that the task doesn't fit into the time constraint
-        printf("Task doesn't fit into the time constraint. Creating a new station...\n");
-
-        // If the task doesn't fit within the time constraint, create a new station
-        t_station *newStation = creer_station();
-
-
-        // Assign the task to the new station
-        newStation->tab_station[newStation->ordre++] = task->numero;
-
-        // Update the total time of the new station
-        newStation->temps_tot += task->temps;
-
-        // Link the new station to the existing station list
-        station->suivant = newStation;
-
-        // Debug print: Print the state of the new station after creation
-        printf("New station created: ordre=%d, temps_tot=%.2f\n", newStation->ordre, newStation->temps_tot);
-    }
-}
+//void assignToStation(t_graphes *g, t_station *station, taches *task) {
+//    printf("Assigning task %d to station.\n", task->numero);
+//
+//    // Check if station is null
+//    if (station == NULL) {
+//        printf("Error: Station pointer is null.\n");
+//        return;
+//    }
+//
+//    // Debug print: Print the initial state of the station
+//    printf("Initial station: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+//
+//    // Traverse the list to find the last station
+//    while (station->suivant != NULL) {
+//        station = station->suivant;
+//    }
+//
+//    // Debug print: Print the final state of the station after traversal
+//    printf("Final station after traversal: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+//
+//    // Allocate memory for tab_station if not already allocated
+//    if (station->tab_station == NULL) {
+//        station->tab_station = (int *)malloc(g->ordre * sizeof(int));
+//        if (station->tab_station == NULL) {
+//            printf("Error: Memory allocation failed.\n");
+//            return;
+//        }
+//        // Debug print: Indicate that memory allocation was successful
+//        printf("Memory allocated for tab_station.\n");
+//    }
+//
+//    // Debug print: Print the assigned task information
+//    printf("Task assigned: numero=%d, temps=%.2f\n", task->numero, task->temps);
+//
+//    // Assuming each station has a time limit, check if the task fits within the time constraint
+//    if (station->temps_tot + task->temps <= g->temps_de_cycle) {
+//        // Debug print: Indicate that the task fits into the time constraint
+//        printf("Task fits into the time constraint. Assigning...\n");
+//
+//        // Assign the task to the station
+//        station->tab_station[station->ordre++] = task->numero;
+//
+//        // Update the total time of the station
+//        station->temps_tot += task->temps;
+//
+//        // Debug print: Print the updated state of the station after task assignment
+//        printf("Updated station after assignment: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
+//    } else {
+//        // Debug print: Indicate that the task doesn't fit into the time constraint
+//        printf("Task doesn't fit into the time constraint. Creating a new station...\n");
+//
+//        // If the task doesn't fit within the time constraint, create a new station
+//        t_station *newStation = creer_station();
+//
+//
+//        // Assign the task to the new station
+//        newStation->tab_station[newStation->ordre++] = task->numero;
+//
+//        // Update the total time of the new station
+//        newStation->temps_tot += task->temps;
+//
+//        // Link the new station to the existing station list
+//        station->suivant = newStation;
+//
+//        // Debug print: Print the state of the new station after creation
+//        printf("New station created: ordre=%d, temps_tot=%.2f\n", newStation->ordre, newStation->temps_tot);
+//    }
+//}
 
 
 void freeMemory(t_graphes *g) {
