@@ -6,6 +6,19 @@
 #ifndef PROJET_ING2_HEADER_H
 #define PROJET_ING2_HEADER_H
 
+
+typedef struct maillon{
+    int num;
+    struct maillon * suivant;
+} t_maillon;
+
+typedef struct fileDyn{
+    t_maillon * Maillon_ADefiler;
+    t_maillon * Maillon_AEnfiler;
+    int ordre;
+}t_fileDyn;
+
+
 struct Arc
 {
     int sommet; // numéro de sommet d'un arc adjacent au sommet initial
@@ -16,15 +29,6 @@ struct Arc
 /* Alias de pointeur sur un Arc */
 typedef struct Arc* pArc;
 
-typedef struct maillon{
-    int num;
-    struct maillon * suivant;
-} t_maillon;
-
-typedef struct fileDyn{
-    t_maillon * Maillon_ADefiler;
-    t_maillon * Maillon_AEnfiler;
-}t_fileDyn;
 
 
 
@@ -44,8 +48,6 @@ typedef struct tache
     struct Arc* arc;
 }taches;
 
-
-
 typedef struct station
 {
     int ordre;
@@ -59,8 +61,9 @@ typedef struct graphe
     int ordre;
     float temps_de_cycle;
     taches *tache;
-    t_station * ancre;
+    t_station *ancre;
 }t_graphes;
+
 
 
 #endif //PROJET_ING2_HEADER_H
