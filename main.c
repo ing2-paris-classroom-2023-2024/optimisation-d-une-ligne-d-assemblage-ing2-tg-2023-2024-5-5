@@ -3,6 +3,50 @@
 #include <stdlib.h>
 #include "header.h"
 
+int colorer_taches(taches* t, int ordre) {
+    /// Initialisation des couleurs
+    int* couleurs = (int*)malloc(ordre * sizeof(int));
+    for (int i = 0; i < ordre; ++i) {
+        couleurs[i] = -1;
+    }
+
+
+
+    /// Attribution des couleurs
+    int couleur = 0;
+    for (int i = 0; i < ordre; ++i) {
+        if (couleurs[i] == -1) {
+            couleurs[i] = couleur;
+
+            /// Colorer les tâches non adjacentes
+            for (int j = 0; j < ordre; ++j) {
+                if (couleurs[j] == -1) {
+                    bool adjacente = false;
+                    for (int k = 0; k < t[j].degre; ++k) {
+                        if (couleurs[t[j].exclusion[k]] == couleur) {
+                            adjacente = true;
+                            break;
+                        }
+                    }
+                    if (!adjacente) {
+                        couleurs[j] = couleur;
+                    }
+                }
+            }
+
+            couleur++;
+        }
+        t[i].couleur = couleurs[i];
+    }
+
+
+
+    /// Le nombre minimum de stations est égal au nombre de couleurs utilisées
+    int nombreStations = couleur;
+    free(couleurs);
+    return nombreStations;
+}
+
 t_graphes* Creert_graphes(int ordre){
     t_graphes * Newt_graphes=(t_graphes*)malloc(sizeof(t_graphes));
     Newt_graphes->tache = (taches*)malloc(ordre*sizeof(taches));
@@ -39,14 +83,47 @@ void creer_tab_prece(taches* t, int s1, int s2)
 
 }
 
+void creer_tab_exclu(taches* t, int s1, int s2)
+{
+
+    int i = 0;
+
+    while(t[i].numero != s1) i++;
+
+
+    if (t[i].degre == 0)
+    {
+        t[i].exclusion = (int *) malloc(sizeof(int));
+        t[i].exclusion[0] = s2;
+        t[i].degre++;
+    }
+    else
+    {
+        t[i].exclusion = (int *) realloc(t[i].exclusion, t[i].degre * sizeof(int ));
+        t[i].exclusion[t[i].degre] = s2;
+        t[i].degre++;
+    }
+}
+
+
+
+/// fonctions permettant d'avoir l'indice du sommet en fonction des oppérations
+int indice(int taille, int nb, t_graphes *graphe){
+    for (int i = 0; i < taille; ++i) {
+        if (graphe->tache[i].numero == nb){
+            return i;
+        }
+    }
+}
+
 t_graphes *lire_fichier()
 {
 
     /// Lecture des diffferents fichiers txt
-    FILE *tps_cyle = fopen("temps_cycle.txt", "r");
-    FILE *exclu = fopen("exclusions.txt", "r");
-    FILE *opera = fopen("operations.txt", "r");
-    FILE *prece = fopen("precedences.txt", "r");
+    FILE *tps_cyle = fopen("temps_cycle2.txt", "r");
+    FILE *exclu = fopen("exclusions2.txt", "r");
+    FILE *opera = fopen("operations2.txt", "r");
+    FILE *prece = fopen("precedences2.txt", "r");
 
 
 
@@ -122,14 +199,27 @@ t_graphes *lire_fichier()
     ret = ftell(exclu);
     rewind(exclu);
 
+    g->matrice = (int **) malloc(g->ordre*sizeof(int*));
 
+    for (int i = 0; i < g->ordre; ++i) {
+        g->matrice[i]=(int *) malloc(g->ordre*sizeof(int));
+    }
+    for (int i = 0; i < g->ordre; ++i) {
+        for (int j = 0; j < g->ordre; ++j) {
+            g->matrice[i][j] = 1;
+        }
+
+    }
     pos = ftell(exclu);
     while (pos!=ret)
     {
         fscanf(exclu,"%d %d", &s1, &s2);
-
-        //creer_tab_exclu(t, s1, s2);
-        //creer_tab_exclu(t, s2, s1);
+        s1 = indice(g->ordre, s1, g);
+        s2 = indice(g->ordre, s2, g);
+        g->matrice[s1][s2] = 0;
+        g->matrice[s2][s1] = 0;
+        creer_tab_exclu(t, s1, s2);
+        creer_tab_exclu(t, s2, s1);
 
         pos = ftell(exclu);
 
@@ -168,6 +258,8 @@ t_graphes *lire_fichier()
     ret = ftell(prece);
     rewind(prece);
 
+
+
     pos = ftell(prece);
     while (pos!=ret)
     {
@@ -176,7 +268,9 @@ t_graphes *lire_fichier()
 
         pos = ftell(prece);
     }
-
+    g->tache = t;
+    int couleur = colorer_taches(g->tache, g->ordre);
+    printf("Le nombre minimum de stations necessaire avec l'algo naif est : %d\n", couleur);
 
 
 
@@ -202,10 +296,24 @@ t_graphes *lire_fichier()
     fclose(exclu);
     fclose(prece);
 
-    g->tache = t;
+
 
     return g;
 
+}
+
+void trier_taches_par_degre(taches* t, int ordre)
+{
+    for (int i = 0; i < ordre - 1; ++i) {
+        for (int j = 0; j < ordre - i - 1; ++j) {
+            if (t[j].degre < t[j + 1].degre) {
+                // Échange
+                taches temp = t[j];
+                t[j] = t[j + 1];
+                t[j + 1] = temp;
+            }
+        }
+    }
 }
 
 t_station * creer_station() {
@@ -411,14 +519,7 @@ int welsh_powell(taches* t, int ordre) {
     /// Tri des tâches par degré décroissant
 
     trier_taches_par_degre(t, ordre);
-/*
-    /// Impression des tâches triées
-    printf("Taches triees par degre decroissant : ");
-    for (int i = 0; i < ordre; ++i) {
-        printf("%d ", t[i].numero);
-    }
-    printf("\n");
-    */
+
     /// Appliquer l'algorithme naïf pour colorier les tâches
     int nombreStations = colorer_taches(t, ordre);
 

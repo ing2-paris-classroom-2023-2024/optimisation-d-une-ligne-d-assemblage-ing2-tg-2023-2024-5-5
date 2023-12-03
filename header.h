@@ -33,6 +33,7 @@ typedef struct tache
 
 typedef struct graphe
 {
+    int nb_station;
     int ordre;
     float temps_de_cycle;
     taches *tache;
