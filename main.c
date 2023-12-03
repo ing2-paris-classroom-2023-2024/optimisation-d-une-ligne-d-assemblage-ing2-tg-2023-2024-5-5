@@ -135,7 +135,21 @@ void enfiler(t_fileDyn * ptAlignement, int nouvelElement){
         }
     }
 }
+void verif(t_graphes *g){
+    printf("verif \n\n");
+    for (int i = 0; i < g->ordre; i++) {
+        printf("Tache %d :", g->tache[i].numero);
 
+        pArc arc = g->tache[i].arc;
+
+        while (arc != NULL) {
+            printf(" %d\n", arc->sommet);
+            arc = arc->arc_suivant;
+        }
+
+        printf("\n");
+    }
+}
 int defiler(t_fileDyn * ptAlignement){
     t_maillon* ptcourant = NULL;
     t_maillon* ptprecedent = NULL;
@@ -176,7 +190,7 @@ int defiler(t_fileDyn * ptAlignement){
 }
 bool fin_predecesseur(taches *t, int voisin, int current)
 {
-    printf("l indice est %d\n",voisin);
+   // printf("l indice est %d\n",voisin);
     for (int i = 0; i < t[voisin].nb_de_prece; ++i) {
         // printf("nombre de precedence du sommet %d est %d\n", t[voisin].numero,t[voisin].nb_de_prece);
         //printf("\n sommet precedent de %d est %d\n",t[voisin].numero,t[voisin].precedences[i]);
@@ -202,14 +216,14 @@ bool somme(t_fileDyn *file,taches* t,t_graphes *g,int curent){
         actual = actual->suivant;
     }
     i += t[curent].temps;
-    printf("le temps global de la file est : %f\n",i);
+   // printf("le temps global de la file est : %f\n",i);
     if (i <= g->temps_de_cycle)return 1;
     return 0;
 }
 void afficher_f(t_fileDyn *file){
     t_maillon *actual = file->Maillon_AEnfiler;
     while(actual!=NULL){
-        printf("l etat de la file %d\n",actual->num);
+       // printf("l etat de la file %d\n",actual->num);
         actual = actual->suivant;
     }
 
@@ -221,7 +235,7 @@ void afficher_s(t_station* s, int num,t_graphes *g){
     while(actual!=NULL){
 //        printf("ordre de s : %d", s->ordre);
         for (int i = 0; i < actual->ordre; ++i) {
-            printf("l etat de la station %d  est %d\n",numero,g->tache[actual->tab_station[i]].numero );
+            //printf("l etat de la station %d  est %d\n",numero,g->tache[actual->tab_station[i]].numero );
         }
 
 
@@ -247,7 +261,7 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
     int* marquage = (int*)malloc(graphes->ordre * sizeof(int));
     // création d'un tableau dynamique qui va contenir les prédécesseurs des sommets
     int* predecesseur = (int*)malloc(graphes->ordre * sizeof(int));
-    int cmpt=1;
+
     bool exit = false;
 
     int indice=1;
@@ -268,27 +282,38 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
 
     // on cherche quel est le plus grand sommet dans le cas où les sommets du t_graphes ne commencent pas à 0 :
     exit=false;
-    //while (!estVide(file))
+
+
+    int sommet_courant = s_init;
+    // on enlève de la file le prochain sommet qui va être exploré par le BFS
+    // printf(" indice sommet courant %d\n ", sommet_courant); // on affiche le sommet en question
+
+    // On regarde qui sont les voisins du sommet courant et on les parcourt §
+    pArc arc = graphes->tache[sommet_courant].arc;
+
+    while (arc!= NULL)
     {
-        int sommet_courant = s_init; // on enlève de la file le prochain sommet qui va être exploré par le BFS
-        printf(" indice sommet courant %d ", sommet_courant); // on affiche le sommet en question
+        int sommet_courant = s_init;
+       // on enlève de la file le prochain sommet qui va être exploré par le BFS
+       // printf(" indice sommet courant %d\n ", sommet_courant); // on affiche le sommet en question
 
         // On regarde qui sont les voisins du sommet courant et on les parcourt §
         pArc arc = graphes->tache[sommet_courant].arc;
+        //printf("le sommet lie a l 'arc %d\n",arc->sommet);
 
-        for (int i = 0; i <graphes->ordre; ++i)
-        {
-            pArc arc1 = graphes->tache[i].arc;
-//            if (arc1!=NULL) printf("il y a un arc entre %d  et : %d  indice %d \n",graphes->tache[i].numero,arc1->sommet,i);
-//            else printf("FIN de %d   indice %d\n",graphes->tache[i].numero, i );
-        }
-        if(arc == NULL) printf(" on est sur un arc null");
+
+            if(arc != NULL) {
+                printf("Sommet courant : %d, Arc actuel : %p\n", sommet_courant, (void*)arc);
+            }
+
+
 
         while (arc!= NULL)
         {
 
             cmpt2++;
-            printf(" nombre de tour de boucle %d\n",cmpt2);
+            //printf("le sommet lie a l 'arc %d\n",arc->sommet);
+           // printf(" nombre de tour de boucle %d\n",cmpt2);
             //printf("on est dans bfs \n\n");
 
             // tant que le sommet à encore des voisins non marqué
@@ -297,13 +322,13 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
 //            printf(" \nvoisin n            %d\n",voisin);
             int i = 0;
             while(graphes->tache[i].numero != voisin) i++;
-            printf("sommet courrant %d a indice %d\n",voisin,i);
+           // printf("sommet courrant %d a indice %d\n",voisin,i);
 //            printf(" correspond au sommet : %d son sommet suivant est  %d\n",graphes->tache[sommet_courant].numero,graphes->tache[i].numero);// on récupère le numéro du sommet voisin du sommet courant
 
 
-            //fin_predecesseur(graphes->tache,i, sommet_courant);
             if(fin_predecesseur(graphes->tache,i, sommet_courant)==true)
             {
+
                 //printf("sale chien");
 
                 if(somme(file,graphes->tache,graphes,i)==1)
@@ -365,24 +390,26 @@ void bfs (t_graphes * graphes, int s_init,int cmpt2, t_station* s,t_fileDyn *fil
 
 
 
-                arc = arc->arc_suivant; // on passe au voisin suivant
+                arc = arc->arc_suivant;
+               // printf("on passe a l arc suivant\n ");// on passe au voisin suivant
             }
             else
             {
-                exit = true;
+                printf("c est finito\n");
                 break;
+//                goto laa;
             }
-            break;
 
 
 
 
         }
 
+//    laa:
     }
     // on parcourt toute la file tant qu'elle n'est pas vide
 
-    printf("\n");
+   //if(arc==NULL)printf("arc est null\n");
 
 
     // on affiche les prédécesseurs de chaque sommet
@@ -550,8 +577,8 @@ t_graphes *lire_fichier()
     {
         fscanf(exclu,"%d %d", &s1, &s2);
 
-        //creer_tab_exclu(t, s1, s2);
-        //creer_tab_exclu(t, s2, s1);
+        creer_tab_exclu(t, s1, s2);
+        creer_tab_exclu(t, s2, s1);
 
         pos = ftell(exclu);
 
@@ -645,6 +672,7 @@ t_station precedances(t_graphes *g)
     taches *t = g->tache;
     int ordre = g->ordre;
     float temps_cycle = g->temps_de_cycle;
+    int a = 0;
 
 
     g->ancre = creer_station();
@@ -662,11 +690,14 @@ t_station precedances(t_graphes *g)
     while(fini(t, ordre)==false)
     {
 
+        printf("on est dans precedence \n\n");
+
         for (i = 0; i < ordre; ++i)
         {
             if (t[i].precedences == -1 && t[i].marquage == false)
             {
-                printf("coucouuuuuu %d\n", i);
+                printf("recherche de source %d\n", i);
+               // printf("coucouuuuuu %d\n", i);
                 /*
                 if ((t[i].temps + actual->temps_tot) > temps_cycle)
                 {
@@ -695,7 +726,16 @@ t_station precedances(t_graphes *g)
 //                actual->ordre++;
 //                actual->temps_tot = actual->temps_tot + t[i].temps;
                 t[i].marquage = true;
-                bfs(g,i,g->ordre,actual,&file);
+                /*
+                printf("bfs a partir de l indice %d\n\t",i);
+                 */
+
+//                for (int j = 0; j <g->ordre ; ++j) {
+//                    bfs(g,j,a,actual,&file);
+//                }
+
+
+                bfs(g,i,a,actual,&file);
 
                 break;
 
@@ -706,7 +746,7 @@ t_station precedances(t_graphes *g)
         }
 
 
-       printf("marquageeee de %d = %d", i, t[i].marquage);
+      //printf("marquageeee de %d = %d\n\n", i, t[i].marquage);
 //        printf("Ce projet pue la merde\n");
        // printf("\niciiiii %d\n", i);
 
@@ -737,7 +777,7 @@ t_station precedances(t_graphes *g)
 
 
 
-
+// affichage station
 
 //    t[i].exclusion = (int *) realloc(t[i].exclusion, t[i].degre * sizeof(int ));
 
@@ -754,6 +794,7 @@ int main()
     t_station station;
 
     graphe = lire_fichier();
+
 //    graphe_afficher(graphe);
     station = precedances(graphe);
 
