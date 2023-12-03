@@ -1,142 +1,230 @@
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
+#include "header.h"
+#define NBMAX 1000
 
-// Nombre maximal d'opérations
-#define MAX_OPERATIONS 35
-#define MAX_EXCLUSIONS 100
 
-// Structure pour représenter une paire d'opérations exclues
-typedef struct {
-    int operation1;
-    int operation2;
-} Exclusion;
-
-// Fonction pour vérifier si une paire d'opérations est exclue
-bool Exclue(Exclusion exclusions[], int nombreExclusions, int op1, int op2) {
-    for (int i = 0; i < nombreExclusions; ++i) {
-        if ((exclusions[i].operation1 == op1 && exclusions[i].operation2 == op2) ||
-            (exclusions[i].operation1 == op2 && exclusions[i].operation2 == op1)) {
-            return true;  // La paire est exclue
+int indice(int taille, int nb, t_graphes *graphe){
+    for (int i = 0; i < taille; ++i) {
+        if (graphe->tache[i].numero == nb){
+            return i;
         }
     }
-    return false;  // La paire n'est pas exclue
 }
 
-int welchPowell(Exclusion exclusions[], int nombreExclusions, int nombreOperations) {
-    // Initialisation des degrés des opérations à 0
-    int degres[MAX_OPERATIONS] = {0};
+t_graphes* Creert_graphes(int ordre){
+    t_graphes * Newt_graphes=(t_graphes*)malloc(sizeof(t_graphes));
+    Newt_graphes->tache = (taches*)malloc(ordre*sizeof(taches));
+    //Newt_graphes->file = (int*)malloc(ordre*sizeof(int));
 
-    // Calcul des degrés en tenant compte des exclusions
-    for (int i = 0; i < nombreExclusions; ++i) {
-        degres[exclusions[i].operation1 - 1]++;
-        degres[exclusions[i].operation2 - 1]++;
+    for(int i=0; i<ordre; i++){
+        Newt_graphes->tache[i]=*(taches*)malloc(sizeof (taches));
+        Newt_graphes->tache[i].arc=NULL;
+        Newt_graphes->tache[i].marquage = false;
+
     }
 
-    // Tableau pour stocker les opérations triées par degré décroissant
-    int operationsTriees[MAX_OPERATIONS];
+    return Newt_graphes;
+}
 
-    // Initialisation du tableau des opérations triées
-    for (int i = 0; i < nombreOperations; ++i) {
-        operationsTriees[i] = i + 1;  // Les opérations sont numérotées à partir de 1
+
+
+t_graphes *lire_fichier()
+{
+
+    /// Lecture des diffferents fichiers txt
+    FILE *tps_cyle = fopen("temps_cycle.txt", "r");
+    FILE *exclu = fopen("exclusions.txt", "r");
+    FILE *opera = fopen("operations.txt", "r");
+    FILE *prece = fopen("precedences.txt", "r");
+
+
+    /// Si erreur de fichier
+    if (!tps_cyle || !exclu || !opera || !prece)
+    {
+        printf("Erreur de lecture fichier\n");
+        exit(-1);
     }
 
-    // Tri des opérations par degré décroissant (utilisation d'un simple tri à bulles)
-    for (int i = 0; i < nombreOperations - 1; ++i) {
-        for (int j = 0; j < nombreOperations - i - 1; ++j) {
-            if (degres[operationsTriees[j] - 1] < degres[operationsTriees[j + 1] - 1]) {
-                // Échange
-                int temp = operationsTriees[j];
-                operationsTriees[j] = operationsTriees[j + 1];
-                operationsTriees[j + 1] = temp;
+
+
+    /// Lecture du fichier temps de cycle
+    float temps_cycle;
+
+    fscanf(tps_cyle, "%f", &temps_cycle);
+
+
+
+    //feof
+    /// Lecture du fichier operations
+    long ret, pos;
+    int sommet, ordre;
+    float temps;
+
+    ordre = 0;
+    ///Recuperation de la position de la derniere valeur du fichier, puis replacer le curseur a 0
+    fseek(opera, 0, SEEK_END);
+    ret = ftell(opera);
+    rewind(opera);
+
+    ///Prendre la posstion actuelle et la comparer à celle de fin pour avoir le nombre de sommet, l'ordre
+    pos = ftell(opera);
+    while(pos != ret)
+    {
+        fscanf(opera, "%d %f", &sommet, &temps);
+        ordre++;
+        pos = ftell(opera);
+    }
+
+
+    /// Creation du t_graphes tache dynamiquement
+    t_graphes *g;
+    g = Creert_graphes(ordre);
+
+    g->ordre = ordre;
+    g->temps_de_cycle = temps_cycle;
+
+    taches* t = g->tache;
+
+
+
+    ///On revient au debut du fichier pour cette fois lire les données et les mettre à leur place
+    rewind(opera);
+    for (int i = 0; i < ordre; ++i)
+    {
+
+
+        fscanf(opera, "%d %f", &sommet, &temps);
+
+        t[i].numero = sommet;
+        t[i].temps = temps;
+    }
+
+
+    /// Lecture fichier texte exclusions
+    int s1, s2;
+    g->matrice = (int **) malloc(g->ordre*sizeof(int*));
+
+    for (int i = 0; i < g->ordre; ++i) {
+        g->matrice[i]=(int *) malloc(g->ordre*sizeof(int));
+    }
+    for (int i = 0; i < g->ordre; ++i) {
+        for (int j = 0; j < g->ordre; ++j) {
+            g->matrice[i][j] = 1;
+        }
+
+    }
+
+    while (fscanf(exclu, "%d %d", &s1, &s2) == 2) {
+        s1 = indice(g->ordre, s1, g);
+        s2 = indice(g->ordre, s2, g);
+        g->matrice[s1][s2] = 0;
+        g->matrice[s2][s1] = 0;
+    }
+
+   /* for (int i = 0; i < g->ordre; ++i) {
+        for (int j = 0; j < g->ordre; ++j) {
+            printf("case[%d][%d] : %d \n", g->tache[i].numero, g->tache[j].numero, gmatrice[i][j]);
+        }
+
+    }*/
+
+
+    ///Fermeture de fichiers
+    fclose(opera);
+    fclose(tps_cyle);
+    fclose(exclu);
+    fclose(prece);
+
+    g->tache = t;
+
+    return g;
+
+}
+
+void assignStations(t_graphes g) {
+    int rows[g.ordre * g.ordre];
+    int cols[g.ordre * g.ordre];
+    int indexCount = 0;
+
+    // Collecter les indices
+    for (int i = 0; i < g.ordre; i++) {
+        for (int j = 0; j < g.ordre; j++) {
+            if (g.matrice[i][j] == 1) {
+                rows[indexCount] = i;
+                cols[indexCount] = j;
+                indexCount++;
             }
         }
     }
 
-    // Le nombre de stations est le degré maximum
-    int nombreStations = degres[operationsTriees[0] - 1];
+    // Trier les indices en fonction de leur valeur
+    for (int i = 0; i < indexCount - 1; i++) {
+        for (int j = 0; j < indexCount - i - 1; j++) {
+            if (rows[j] * g.ordre + cols[j] > rows[j + 1] * g.ordre + cols[j + 1]) {
+                // Échanger les indices
+                int tempRow = rows[j];
+                int tempCol = cols[j];
 
-    return nombreStations;
-}
+                rows[j] = rows[j + 1];
+                cols[j] = cols[j + 1];
 
-int algorithmeNaif(Exclusion exclusions[], int nombreExclusions, int nombreOperations) {
-    // Nombre initial de stations est 0
-    int nombreStations = 0;
+                rows[j + 1] = tempRow;
+                cols[j + 1] = tempCol;
+            }
+        }
+    }
 
-    // Tableau pour suivre la station attribuée à chaque opération
-    int stations[MAX_OPERATIONS] = {0};
+    // Assigner les indices aux stations
+    int stations[g.ordre][g.ordre];
+    int stationCount = 0;
 
-    // Pour chaque paire d'opérations exclues
-    for (int i = 0; i < nombreExclusions; ++i) {
-        int operation1 = exclusions[i].operation1;
-        int operation2 = exclusions[i].operation2;
+    for (int i = 0; i < indexCount; i++) {
+        bool assigned = false;
 
-        // Si les opérations ne sont pas encore attribuées à une station
-        if (stations[operation1 - 1] == 0 && stations[operation2 - 1] == 0) {
-            // Attribuer une nouvelle station aux deux opérations
-            nombreStations++;
-            stations[operation1 - 1] = nombreStations;
-            stations[operation2 - 1] = nombreStations;
-        } else if (stations[operation1 - 1] == 0) {
-            // Si seulement l'opération 1 n'est pas attribuée, attribuer la même station que l'opération 2
-            stations[operation1 - 1] = stations[operation2 - 1];
-        } else if (stations[operation2 - 1] == 0) {
-            // Si seulement l'opération 2 n'est pas attribuée, attribuer la même station que l'opération 1
-            stations[operation2 - 1] = stations[operation1 - 1];
-        } else if (stations[operation1 - 1] != stations[operation2 - 1]) {
-            // Si les deux opérations sont attribuées à des stations différentes, fusionner les stations
-            int station1 = stations[operation1 - 1];
-            int station2 = stations[operation2 - 1];
+        for (int j = 0; j < stationCount; j++) {
+            bool canAssign = true;
 
-            for (int j = 0; j < nombreOperations; ++j) {
-                if (stations[j] == station2) {
-                    stations[j] = station1;
+            for (int k = 0; k < g.ordre; k++) {
+                int rowIndex = rows[i];
+                int colIndex = cols[i];
+
+                if (g.matrice[rowIndex][k] == 0 && stations[j][k] == 1) {
+                    canAssign = false;
+                    break;
                 }
             }
+
+            if (canAssign) {
+                stations[j][cols[i]] = 1;
+                assigned = true;
+                break;
+            }
+        }
+
+        if (!assigned) {
+            stations[stationCount][cols[i]] = 1;
+            stationCount++;
         }
     }
 
-    return nombreStations;
+    printf("Nombre de stations : %d\n", stationCount);
+
+    for (int i = 0; i < stationCount; i++) {
+        printf("Station %d : ", i + 1);
+
+        for (int j = 0; j < g.ordre; j++) {
+            printf("%d ", stations[i][j]);
+        }
+
+        printf("\n");
+    }
 }
 
-
 int main() {
-    //lecture des exclusions à partir d'un fichier
-    FILE *fichierExclusions = fopen("exclusions.txt", "r");
-    if (fichierExclusions == NULL) {
-        perror("Erreur lors de l'ouverture du fichier d'exclusions");
-        return 1;
-    }
-
-    Exclusion exclusions[MAX_EXCLUSIONS];
-    int nombreExclusions = 0;
-
-    // Lecture des paires d'exclusion depuis le fichier
-    while (fscanf(fichierExclusions, "%d %d", &exclusions[nombreExclusions].operation1, &exclusions[nombreExclusions].operation2) == 2) {
-        nombreExclusions++;
-        if (nombreExclusions >= MAX_EXCLUSIONS) {
-            printf("Attention : le nombre maximal d'exclusions a ete atteint. Certaines exclusions peuvent ne pas avoir ete prises en compte.\n");
-            break;
-        }
-    }
-
-    fclose(fichierExclusions);
-
-    //vérification si une paire d'opérations est exclue
-    int op1 = 1;
-    int op2 = 13;
-    if (Exclue(exclusions, nombreExclusions, op1, op2)) {
-        printf("Les operations %d et %d ne peuvent pas etre affectees a la meme station.\n", op1, op2);
-    } else {
-        printf("Les operations %d et %d peuvent etre affectees a la meme station.\n", op1, op2);
-    }
-    // Exemple d'utilisation de l'algorithme de Welch-Powell
-    int nombreStations = welchPowell(exclusions, nombreExclusions, MAX_OPERATIONS);
-    printf("Le nombre minimum de stations selon l'algorithme de Welch-Powell est : %d\n", nombreStations);
-
-    // Exemple d'utilisation de l'algorithme naïf
-    int nombreStationsNaif = algorithmeNaif(exclusions, nombreExclusions, MAX_OPERATIONS);
-    printf("Le nombre minimum de stations selon l'algorithme naif est : %d\n", nombreStationsNaif);
-
-
+    t_graphes *g;
+    g = lire_fichier();
+    assignStations(*g);
     return 0;
+
 }
