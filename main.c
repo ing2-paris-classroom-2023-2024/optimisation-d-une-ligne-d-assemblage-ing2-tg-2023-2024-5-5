@@ -429,6 +429,7 @@ void BFS(t_graphes *g) {
     /// liberation de la mémoire
     free(tab);
 }
+// on regarde si les deux sommets sont compato
 bool parcourir_m(t_graphes *g, int s1, int s2)
 {
     if(g->matrice[s1][s2]==0) {
@@ -441,54 +442,29 @@ bool parcourir_m(t_graphes *g, int s1, int s2)
 
 }
 
+void inserer_maillon_a_un_index(t_station * ancre, t_station * maillon_a_inserer, int index)
+{
+    t_station * actual = ancre;
+    int cmpt=1;
 
-t_station * insererAuMilieu(t_station *tete, int valeur, int position) {
-    t_station *nouveauMaillon = (t_station *)malloc(sizeof(t_station));
-    if (nouveauMaillon == NULL) {
-        printf("Erreur d'allocation de mémoire.\n");
-        exit(EXIT_FAILURE);
+    while(actual->suivant!= NULL) {
+        actual = actual->suivant;
+        cmpt++;
+        if (cmpt==index)
+        {
+            maillon_a_inserer->suivant=actual->suivant;
+            actual->suivant=maillon_a_inserer;
+        }
     }
-
-    nouveauMaillon->tab_station = (int *) malloc(sizeof(int));
-
-    if (position == 1) {
-        // Cas particulier : insertion en tête de liste
-        nouveauMaillon->suivant = tete;
-        return nouveauMaillon;
-    }
-
-    t_station *courant = tete;
-    int i = 1;
-
-    // Parcourir la liste jusqu'à l'emplacement désiré
-    while (i < position - 1 && courant != NULL) {
-        courant = courant->suivant;
-        i++;
-    }
-
-    if (courant == NULL) {
-        // La position spécifiée est hors de la taille actuelle de la liste
-        printf("Position invalide pour l'insertion.\n");
-        free(nouveauMaillon);
-        return tete;
-    }
-
-    // Insérer le nouveau maillon au milieu
-    nouveauMaillon->suivant = courant->suivant;
-    courant->suivant = nouveauMaillon;
-
-    return tete;
 }
-
 void integration(t_graphes *g)
 {
     t_station *actual = g->ancre;
-    int position=1;
     while (actual!=NULL){
          for (int i = 0; i < actual->ordre-1; ++i)
          {
              int s1 = actual->tab_station[i];
-             int s2 = actual->tab_station[i-1];
+             int s2 = actual->tab_station[i+1];
 
              int x= 0;
              while (s1 != g->tache[x].numero) x++;
@@ -501,20 +477,19 @@ void integration(t_graphes *g)
                  g->nb_station++;
 
 
-             }else {
-                 actual=actual->suivant;
              }
+//             else
+//             {
+//                 actual=actual->suivant;
+//             }
 
-    }
+        }
 
-
+         actual = actual->suivant;
     }
 
 
 }
-
-
-
 
 int welsh_powell(taches* t, int ordre) {
     /// Tri des tâches par degré décroissant
@@ -527,6 +502,9 @@ int welsh_powell(taches* t, int ordre) {
     /// Retourner le nombre de stations (couleurs utilisées)
     return nombreStations;
 }
+
+
+
 
 
 int main() {
@@ -542,7 +520,8 @@ int main() {
     afficher_s(graphe);
     int nb_s= welsh_powell(graphe->tache,graphe->ordre);
     printf("%d \n", graphe->ordre);
-    printf("le nb de station est %d",nb_s);
+    printf("le nb de station est %d\n",nb_s);
+    printf("le nb de station est %d\n",graphe->nb_station);
 
     
     /// Liberation
