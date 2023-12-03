@@ -13,10 +13,9 @@ t_graphes* Creert_graphes(int ordre){
         Newt_graphes->tache[i].marquage = false;
 
     }
-
+    Newt_graphes->nb_station = 0;
     return Newt_graphes;
 }
-
 
 void creer_tab_prece(taches* t, int s1, int s2)
 {
@@ -219,250 +218,233 @@ t_station * creer_station() {
     return nouvelle_station;
 }
 
+void assigner_a_station(t_graphes * g, t_station * station, taches * tache) {
+    printf("On assigne tache %d a station.\n", tache->numero);
 
-void BFS(t_graphes *g);
-
-// Function to assign a task to a station
-void assignToStation(t_graphes * g, t_station * station, taches * task) {
-    printf("Assigning task %d to station.\n", task->numero);
-
-    // Check if station is null
     if (station == NULL) {
-        printf("Error: Station pointer is null.\n");
+        printf("Erreur: Station null.\n");
         return;
     }
 
-    // Debug print: Print the initial state of the station
-    printf("Initial station: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-
-    // Traverse the list to find the last station
+    /// On parcours la liste chainée de station pour arriver a la deniere
     while (station->suivant != NULL) {
         station = station->suivant;
     }
 
-    // Debug print: Print the final state of the station after traversal
-    printf("Final station after traversal: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-
-    // Allocate memory for tab_station if not already allocated
+    /// Allocution de la mémoire si on a pas de tab_station
     if (station->tab_station == NULL) {
-        station->tab_station = (int*)malloc(g->ordre * sizeof(int));
+        station->tab_station = (int *)malloc(g->ordre * sizeof(int));
         if (station->tab_station == NULL) {
-            printf("Error: Memory allocation failed.\n");
+            printf("Erreur de memoire.\n");
             return;
         }
-        // Debug print: Indicate that memory allocation was successful
-        printf("Memory allocated for tab_station.\n");
     }
 
-    // Debug print: Print the assigned task information
-    printf("Task assigned: numero=%d, temps=%.2f\n", task->numero, task->temps);
+    /// On regarde le temps de la station + temps de la tache puis on a compare au temps de cycle
+    if (station->temps_tot + tache->temps <= g->temps_de_cycle) {
 
-    // Assuming each station has a time limit, check if the task fits within the time constraint
-    if (station->temps_tot + task->temps <= g->temps_de_cycle) {
-        // Debug print: Indicate that the task fits into the time constraint
-        printf("Task fits into the time constraint. Assigning...\n");
+        /// Assignement de la tache a la station
+        station->tab_station[station->ordre++] = tache->numero;
 
-        // Assign the task to the station
-        station->tab_station[station->ordre++] = task->numero;
+        /// Mise a jour du nouveau temps
+        station->temps_tot += tache->temps;
 
-        // Update the total time of the station
-        station->temps_tot += task->temps;
-
-        // Debug print: Print the updated state of the station after task assignment
-        printf("Updated station after assignment: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
     } else {
-        // Debug print: Indicate that the task doesn't fit into the time constraint
-        printf("Task doesn't fit into the time constraint. Creating a new station...\n");
+        /// Si le temps est supérieur, création d'une nouvelle tache
+        t_station *nouveau = creer_station();
+        g->nb_station++;
+        nouveau->tab_station = (int *)malloc(g->ordre * sizeof(int));
 
-        // If the task doesn't fit within the time constraint, create a new station
-        station->suivant = creer_station();
-//        station->suivant = (t_station *)malloc(sizeof(t_station));
-//        station->suivant->ordre = 0;
-//        station->suivant->temps_tot = 0;
-        station->suivant->tab_station = (int*)malloc(g->ordre * sizeof(int)); // Allocate memory for tab_station
-//        station->suivant->suivant = NULL;
+        /// Assignement de la tache a la station
+        nouveau->tab_station[nouveau->ordre++] = tache->numero;
 
-        // Check if memory allocation for tab_station was successful
-        if (station->suivant->tab_station == NULL) {
-            printf("Error: Memory allocation failed for new station->tab_station.\n");
-            free(station->suivant); // Free the allocated memory for the new station
-            return;
-        }
+        /// Mise a jour du nouveau temps
+        nouveau->temps_tot += tache->temps;
 
-        station = station->suivant;
+        /// Mise a jour de la station suivante avec la nouvelle station
+        station->suivant = nouveau;
 
-        // Assign the task to the new station
-        station->tab_station[station->ordre++] = task->numero;
-
-        // Update the total time of the new station
-        station->temps_tot += task->temps;
-
-        // Debug print: Print the state of the new station after creation
-        printf("New station created: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
     }
 }
-
-// Function to free allocated memory
-void freeMemory(t_graphes *g);
 
 void afficher_s(t_graphes *g){
     int numero=1;
     t_station *actual = g->ancre;
-//    if (actual!=NULL) printf("ererer");
     while(actual!=NULL){
-//        printf("ordre de s : %d", s->ordre);
+        printf("l etat de la station %d  est ",numero);
+
         for (int i = 0; i < actual->ordre; ++i) {
-            printf("l etat de la station %d  est %d\n",numero,actual->tab_station[i] );
+            printf("%d ",actual->tab_station[i]);
         }
-
-
+        printf("\n");
         numero++;
-        //actual->tab_station[g->tache[i].numero]
         actual = actual->suivant;
-
     }
-
-}
-
-
-int main() {
-    // Read input files and create the graph
-    t_graphes *graph = lire_fichier();
-
-    // Perform BFS to assign tasks to stations
-    BFS(graph);
-
-    // Output the results or further processing as needed
-    // (You need to implement this based on your requirements)
-    printf("\n\n\n");
-    printf("%d, %f\n", graph->ancre->ordre, graph->ancre->temps_tot );
-    for (int i = 0; i < graph->ancre->ordre; ++i) {
-        printf("%d ", graph->ancre->tab_station[i]);
-    }
-    printf("\n");
-    afficher_s(graph);
-    // Cleanup and free memory
-    freeMemory(graph);
-
-    return 0;
 }
 
 void BFS(t_graphes *g) {
-    int *queue = (int *)malloc(g->ordre * sizeof(int));
-    int front = -1, rear = -1;
+    int *tab = (int *)malloc(g->ordre * sizeof(int));
+    int x = -1, y = -1;
     g->ancre = creer_station();
+    g->nb_station++;
 
-    // Enqueue all tasks with no dependencies
+    /// On détecte ici tous les points de départ potentiels
     for (int i = 0; i < g->ordre; ++i) {
         if (g->tache[i].nb_de_prece == 0) {
-            queue[++rear] = i;
+            tab[++y] = i;
         }
     }
 
-    // Perform BFS
-    while (front != rear) {
-        int currentTaskIndex = queue[++front];
+    /// Boucle principale du BFS
+    while (x != y) {
+        int indice_tache_actuel = tab[++x];
 
-        // Process the task
-        assignToStation(g, g->ancre, &g->tache[currentTaskIndex]);
+        /// On assigne la tache à la station correspondante
+        assigner_a_station(g, g->ancre, &g->tache[indice_tache_actuel]);
 
-        // Update time and mark the task as visited
-        // (You need to implement this based on your data structures)
+        /// Mise à jour du temps et marquage de la tâche comme visitée
+        g->tache[indice_tache_actuel].marquage = 1;
 
-        // Enqueue tasks that can now be processed
+        /// Changement de nb_de_prece
         for (int i = 0; i < g->ordre; ++i) {
             if (g->tache[i].nb_de_prece > 0) {
                 g->tache[i].nb_de_prece--;
 
-                if (g->tache[i].nb_de_prece == 0) {
-                    queue[++rear] = i;
+                if (g->tache[i].nb_de_prece == 0 && !g->tache[i].marquage) {
+                    tab[++y] = i;
                 }
             }
         }
     }
 
-    free(queue);
+    /// liberation de la mémoire
+    free(tab);
 }
-
-//void assignToStation(t_graphes *g, t_station *station, taches *task) {
-//    printf("Assigning task %d to station.\n", task->numero);
-//
-//    // Check if station is null
-//    if (station == NULL) {
-//        printf("Error: Station pointer is null.\n");
-//        return;
-//    }
-//
-//    // Debug print: Print the initial state of the station
-//    printf("Initial station: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-//
-//    // Traverse the list to find the last station
-//    while (station->suivant != NULL) {
-//        station = station->suivant;
-//    }
-//
-//    // Debug print: Print the final state of the station after traversal
-//    printf("Final station after traversal: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-//
-//    // Allocate memory for tab_station if not already allocated
-//    if (station->tab_station == NULL) {
-//        station->tab_station = (int *)malloc(g->ordre * sizeof(int));
-//        if (station->tab_station == NULL) {
-//            printf("Error: Memory allocation failed.\n");
-//            return;
-//        }
-//        // Debug print: Indicate that memory allocation was successful
-//        printf("Memory allocated for tab_station.\n");
-//    }
-//
-//    // Debug print: Print the assigned task information
-//    printf("Task assigned: numero=%d, temps=%.2f\n", task->numero, task->temps);
-//
-//    // Assuming each station has a time limit, check if the task fits within the time constraint
-//    if (station->temps_tot + task->temps <= g->temps_de_cycle) {
-//        // Debug print: Indicate that the task fits into the time constraint
-//        printf("Task fits into the time constraint. Assigning...\n");
-//
-//        // Assign the task to the station
-//        station->tab_station[station->ordre++] = task->numero;
-//
-//        // Update the total time of the station
-//        station->temps_tot += task->temps;
-//
-//        // Debug print: Print the updated state of the station after task assignment
-//        printf("Updated station after assignment: ordre=%d, temps_tot=%.2f\n", station->ordre, station->temps_tot);
-//    } else {
-//        // Debug print: Indicate that the task doesn't fit into the time constraint
-//        printf("Task doesn't fit into the time constraint. Creating a new station...\n");
-//
-//        // If the task doesn't fit within the time constraint, create a new station
-//        t_station *newStation = creer_station();
-//
-//
-//        // Assign the task to the new station
-//        newStation->tab_station[newStation->ordre++] = task->numero;
-//
-//        // Update the total time of the new station
-//        newStation->temps_tot += task->temps;
-//
-//        // Link the new station to the existing station list
-//        station->suivant = newStation;
-//
-//        // Debug print: Print the state of the new station after creation
-//        printf("New station created: ordre=%d, temps_tot=%.2f\n", newStation->ordre, newStation->temps_tot);
-//    }
-//}
+bool parcourir_m(t_graphes *g, int s1, int s2)
+{
+    if(g->matrice[s1][s2]==0) {
+        return false;
+    }
+    else{
+        return true;
+    }
 
 
-void freeMemory(t_graphes *g) {
-    // Freeing allocated memory for the tache array
-    free(g->tache);
-
-    // Additional cleanup based on your data structures
-    // ...
-
-    // Freeing memory for the graph structure
-    free(g);
 }
 
 
+t_station * insererAuMilieu(t_station *tete, int valeur, int position) {
+    t_station *nouveauMaillon = (t_station *)malloc(sizeof(t_station));
+    if (nouveauMaillon == NULL) {
+        printf("Erreur d'allocation de mémoire.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    nouveauMaillon->tab_station = (int *) malloc(sizeof(int));
+
+    if (position == 1) {
+        // Cas particulier : insertion en tête de liste
+        nouveauMaillon->suivant = tete;
+        return nouveauMaillon;
+    }
+
+    t_station *courant = tete;
+    int i = 1;
+
+    // Parcourir la liste jusqu'à l'emplacement désiré
+    while (i < position - 1 && courant != NULL) {
+        courant = courant->suivant;
+        i++;
+    }
+
+    if (courant == NULL) {
+        // La position spécifiée est hors de la taille actuelle de la liste
+        printf("Position invalide pour l'insertion.\n");
+        free(nouveauMaillon);
+        return tete;
+    }
+
+    // Insérer le nouveau maillon au milieu
+    nouveauMaillon->suivant = courant->suivant;
+    courant->suivant = nouveauMaillon;
+
+    return tete;
+}
+
+void integration(t_graphes *g)
+{
+    t_station *actual = g->ancre;
+    int position=1;
+    while (actual!=NULL){
+         for (int i = 0; i < actual->ordre-1; ++i)
+         {
+             int s1 = actual->tab_station[i];
+             int s2 = actual->tab_station[i-1];
+
+             int x= 0;
+             while (s1 != g->tache[x].numero) x++;
+
+             int y= 0;
+             while (s2 != g->tache[y].numero) y++;
+
+             if(parcourir_m(g,x,y)==true)
+             {
+                 g->nb_station++;
+
+
+             }else {
+                 actual=actual->suivant;
+             }
+
+    }
+
+
+    }
+
+
+}
+
+
+
+
+int welsh_powell(taches* t, int ordre) {
+    /// Tri des tâches par degré décroissant
+
+    trier_taches_par_degre(t, ordre);
+/*
+    /// Impression des tâches triées
+    printf("Taches triees par degre decroissant : ");
+    for (int i = 0; i < ordre; ++i) {
+        printf("%d ", t[i].numero);
+    }
+    printf("\n");
+    */
+    /// Appliquer l'algorithme naïf pour colorier les tâches
+    int nombreStations = colorer_taches(t, ordre);
+
+    /// Retourner le nombre de stations (couleurs utilisées)
+    return nombreStations;
+}
+
+
+int main() {
+    /// Lecture des fichiers txt et création de notre graphe
+    t_graphes *graphe = lire_fichier();
+
+    /// Lancement du bfs
+    BFS(graphe);
+    printf("%d\n", graphe->nb_station);
+    integration(graphe);
+    
+    /// Affichage de nos stations
+    afficher_s(graphe);
+    int nb_s= welsh_powell(graphe->tache,graphe->ordre);
+    printf("%d \n", graphe->ordre);
+    printf("le nb de station est %d",nb_s);
+
+    
+    /// Liberation
+    free(graphe);
+
+    return 0;
+}
