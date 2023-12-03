@@ -48,10 +48,9 @@ int colorer_taches(taches* t, int ordre) {
 }
 
 t_graphes* Creert_graphes(int ordre){
-    t_graphes * Newt_graphes=(t_graphes*)malloc(sizeof(t_graphes));
-    Newt_graphes->tache = (taches*)malloc(ordre*sizeof(taches));
-    //Newt_graphes->file = (int*)malloc(ordre*sizeof(int));
-
+    t_graphes * Newt_graphes=(t_graphes*)malloc(sizeof(t_graphes));  // on crée dynamiquement  la structure graphe
+    Newt_graphes->tache = (taches*)malloc(ordre*sizeof(taches)); // on crée dynamiquement le tableau de structure tache
+    // initialisiation des variables
     for(int i=0; i<ordre; i++){
         Newt_graphes->tache[i]=*(taches*)malloc(sizeof (taches));
         Newt_graphes->tache[i].marquage = false;
@@ -60,14 +59,16 @@ t_graphes* Creert_graphes(int ordre){
     Newt_graphes->nb_station = 0;
     return Newt_graphes;
 }
-
+ // creation du tableau de precedence
 void creer_tab_prece(taches* t, int s1, int s2)
 {
+    // on récupère l indice
     int i = 0;
 
     while(t[i].numero != s2) i++;
 
 
+    // creation du tableau si il ya pas encore de precedence
     if(t[i].nb_de_prece==0)
     {
         t[i].precedences = (int *) malloc(sizeof(int ));
@@ -75,14 +76,14 @@ void creer_tab_prece(taches* t, int s1, int s2)
         t[i].nb_de_prece++;
     }
     else
-    {
+    { // reallocation du tableau avec le bon nombre
         t[i].precedences = (int *) realloc(t[i].precedences, t[i].nb_de_prece * sizeof(int ));
         t[i].precedences[t[i].nb_de_prece] = s1;
         t[i].nb_de_prece++;
     }
 
 }
-
+// meme fonctionnement que la fonction precedente
 void creer_tab_exclu(taches* t, int s1, int s2)
 {
 
@@ -227,22 +228,6 @@ t_graphes *lire_fichier()
     }
 
 
-    /*
-
-    for (int i = 0; i < ordre; ++i)
-    {
-        printf("Tache %d:  ", t[i].numero);
-        for (int j = 0; j < t[i].degre; ++j)
-        {
-            printf("%d ",t[i].exclusion[j]);
-        }
-        printf("\n");
-
-    }
-
-    */
-
-
     ///Lecture du fichier precedences
     s1 = s2 = 0;
 
@@ -273,24 +258,6 @@ t_graphes *lire_fichier()
     int couleur = colorer_taches(g->tache, g->ordre);
     printf("Le nombre minimum de stations necessaire avec l'algo naif est : %d\n", couleur);
 
-
-
-/*
-    for (int i = 0; i < ordre; ++i)
-    {
-        printf("Tache %d:  ", t[i].numero);
-        if (t[i].precedences==-1) printf("-1 ");
-        for (int j = 0; j < t[i].nb_de_prece; ++j)
-        {
-            printf("%d ",t[i].precedences[j]);
-        }
-        printf("\n");
-
-    }
-
-*/
-
-
     /// Fermeture de fichiers
     fclose(opera);
     fclose(tps_cyle);
@@ -304,7 +271,7 @@ t_graphes *lire_fichier()
 }
 
 void trier_taches_par_degre(taches* t, int ordre)
-{
+{ // parcourt du tableau de taches
     for (int i = 0; i < ordre - 1; ++i) {
         for (int j = 0; j < ordre - i - 1; ++j) {
             if (t[j].degre < t[j + 1].degre) {
@@ -316,7 +283,7 @@ void trier_taches_par_degre(taches* t, int ordre)
         }
     }
 }
-
+// creation d une station qui sera en liste chaine
 t_station * creer_station() {
     t_station *nouvelle_station;
     nouvelle_station = (t_station *) malloc(sizeof(t_station));
@@ -375,7 +342,7 @@ void assigner_a_station(t_graphes * g, t_station * station, taches * tache) {
 
     }
 }
-
+//
 void afficher_s(t_graphes *g){
     int numero=1;
     t_station *actual = g->ancre;
