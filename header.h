@@ -26,6 +26,7 @@ typedef struct tache
     int *precedences;
     int nb_de_prece;
 
+    int couleur;
     bool marquage;
 
 }taches;
@@ -36,6 +37,7 @@ typedef struct graphe
     float temps_de_cycle;
     taches *tache;
     t_station *ancre;
+    int **matrice;
 }t_graphes;
 
 
